@@ -226,7 +226,7 @@ func (b *Bot) handleViewOptions(cq *tbot.CallbackQuery) {
 		go func(option *models.CarOption) {
 			// Створюємо повідомлення з ціною і роком
 			message := fmt.Sprintf(
-				"%d. %s\n\n📝Опис: %s\n\n💵Ціна: %d\n📅Рік: %s",
+				"%d. %s\n\n📝Опис:\n%s\n\n💵Ціна: %d$\n📅Рік: %s",
 				option.ID, option.Title, option.Description, option.Price, option.Year,
 			)
 
