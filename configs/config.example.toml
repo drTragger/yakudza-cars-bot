@@ -1,0 +1,12 @@
+logger_level="debug"
+bot_token=""
+
+[storage]
+db_host="127.0.0.1"
+db_port=3306
+db_user=""
+db_password=""
+db_database=""
+
+[admin]
+admin_ids = ["123456789", "987654321"]
