@@ -22,6 +22,8 @@ func (b *Bot) HandleCallback(cq *tbot.CallbackQuery) {
 		b.showCarOption(cq.Message)
 	case cq.Data == "more_feedback":
 		b.showFeedback(cq.Message)
+	case cq.Data == "contact_us":
+		b.handleContactUs(cq)
 	case cq.Data[:5] == "year_":
 		b.handleAdminYearSelection(cq)
 	case cq.Data[:11] == "select_car_":
@@ -119,4 +121,31 @@ func (b *Bot) handleSelectCar(cq *tbot.CallbackQuery) {
 	// Надсилаємо подяку користувачеві після вибору автомобіля
 	thankYouMessage := "Дякуємо за ваш вибір! Ми зателефонуємо вам найближчим часом для уточнення деталей."
 	b.sendMessage(cq.Message, thankYouMessage, nil)
+}
+
+func (b *Bot) handleContactUs(cq *tbot.CallbackQuery) {
+	chatId, err := strconv.Atoi(cq.Message.Chat.ID)
+	if err != nil {
+		b.logger.Error("Failed to convert chatId to int: ", err.Error())
+		b.sendCallbackMessage(cq, "Щось пішло не так. Спробуйте ще раз.", nil)
+		return
+	}
+
+	user, err := b.storage.User().FindByChatId(chatId)
+	if err != nil {
+		b.logger.Error("Failed to find user: ", err.Error())
+		b.sendCallbackMessage(cq, "Щось пішло не так. Спробуйте ще раз.", nil)
+		return
+	}
+
+	_, err = b.client.SendMessage(
+		b.config.GroupID,
+		fmt.Sprintf("‼️Клієнт не знайшов для себе варіант‼️\n+%s", user.Phone),
+	)
+	if err != nil {
+		b.logger.Error("Failed to send message to the group (could not find an option): ", err.Error())
+		return
+	}
+
+	b.sendCallbackMessage(cq, "Дякуємо, ми скоро з вами звʼяжемось.", nil)
 }

@@ -388,7 +388,7 @@ func (b *Bot) showCarOption(m *tbot.Message) {
 	carOption, err := b.storage.CarOption().GetByDetails(selectedCar, shownOptionIDs[m.Chat.ID])
 	if errors.Is(err, sql.ErrNoRows) {
 		b.logger.Info("Немає варіантів авто.")
-		b.sendMessage(m, "Більше немає варіантів авто.", nil)
+		b.sendMessage(m, "Наразі під ці параметри немає варіантів для вас. Будь ласка, оберіть альтернативу.", nil)
 		return
 	} else if err != nil {
 		b.logger.Error("Failed to get car option: ", err.Error())
@@ -434,27 +434,26 @@ func (b *Bot) showCarOption(m *tbot.Message) {
 		})
 	}
 
-	// Відправлення повідомлення з інформацією про авто та інлайн-клавіатурою
-	if carOption.PhotoID != "" {
-		// Якщо є фото авто, відправляємо його
-		_, err := b.client.SendPhoto(
-			m.Chat.ID,
-			carOption.PhotoID,
-			tbot.OptCaption(message), // Форматоване повідомлення
-			tbot.OptInlineKeyboardMarkup(inlineKeyboard), // Додаємо інлайн-клавіатуру
-		)
-		if err != nil {
-			b.logger.Error("Failed to send photo to the group: ", err.Error())
+	// Якщо є фото авто, відправляємо його
+	_, err = b.client.SendPhoto(
+		m.Chat.ID,
+		carOption.PhotoID,
+		tbot.OptCaption(message), // Форматоване повідомлення
+		tbot.OptInlineKeyboardMarkup(inlineKeyboard), // Додаємо інлайн-клавіатуру
+	)
+	if err != nil {
+		b.logger.Error("Failed to send photo to the group: ", err.Error())
+	}
+
+	if otherCarOption == nil {
+		contactKeyboard := &tbot.InlineKeyboardMarkup{
+			InlineKeyboard: [][]tbot.InlineKeyboardButton{
+				{
+					{Text: "Звʼязатися", CallbackData: "contact_us"},
+				},
+			},
 		}
-	} else {
-		// Якщо фото немає, просто відправляємо текстове повідомлення
-		_, err := b.client.SendMessage(
-			m.Chat.ID,
-			message,
-			tbot.OptInlineKeyboardMarkup(inlineKeyboard), // Додаємо інлайн-клавіатуру
-		)
-		if err != nil {
-			b.logger.Error("Failed to send message to the group: ", err.Error())
-		}
+
+		b.sendMessage(m, "Оберіть один з наданих варіантів, або натисніть звʼязатися.", contactKeyboard)
 	}
 }
