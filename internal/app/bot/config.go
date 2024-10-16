@@ -7,11 +7,11 @@ type Config struct {
 	LoggerLevel string `toml:"logger_level"`
 	Storage     *storage.Config
 	Admin       AdminConfig
-	GroupID     string `toml:"group_id"`
 }
 
 type AdminConfig struct {
 	AdminIDs []string `toml:"admin_ids"`
+	GroupID  string   `toml:"group_id"`
 }
 
 func NewConfig() *Config {

@@ -10,3 +10,4 @@ db_database=""
 
 [admin]
 admin_ids = ["123456789", "987654321"]
+group_id=""

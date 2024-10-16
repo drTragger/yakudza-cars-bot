@@ -4,10 +4,12 @@ import (
 	"flag"
 	"github.com/BurntSushi/toml"
 	"github.com/drTragger/yakudza-cars-bot/internal/app/bot"
+	"github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
 	"github.com/yanzay/tbot/v2"
 	"log"
 	"os"
+	"time"
 )
 
 var (
@@ -36,7 +38,7 @@ func main() {
 
 	logger.SetOutput(file)
 
-	server := bot.New(config, logger, tgBot.Client(), tgBot)
+	server := bot.New(config, logger, tgBot.Client(), tgBot, cache.New(40*time.Minute, 60*time.Minute))
 
 	log.Fatal(server.Start())
 }
