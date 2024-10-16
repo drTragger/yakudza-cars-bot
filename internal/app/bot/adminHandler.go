@@ -329,8 +329,8 @@ func (b *Bot) handleFeedbackDescriptionInput(m *tbot.Message) {
 		return
 	}
 
-	if len(m.Text) > 100 {
-		b.sendMessage(m, "Опис не має перевищувати 100 символів.", nil)
+	if len(m.Text) > 600 {
+		b.sendMessage(m, "Опис не має перевищувати 600 символів.", nil)
 	}
 
 	feedbackToAdd.Description = m.Text

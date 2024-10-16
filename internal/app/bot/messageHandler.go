@@ -7,6 +7,7 @@ import (
 	"github.com/drTragger/yakudza-cars-bot/internal/app/models"
 	"github.com/yanzay/tbot/v2"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -295,7 +296,7 @@ func (b *Bot) handlePhoneNumber(m *tbot.Message) {
 	}
 
 	// Get the phone number from the message
-	phoneNumber := m.Contact.PhoneNumber
+	phoneNumber := strings.TrimLeft(m.Contact.PhoneNumber, "+")
 
 	// Use channels to manage asynchronous error handling
 	errChan := make(chan error, 2)
