@@ -148,10 +148,12 @@ func (b *Bot) handleAdminPhotoInput(m *tbot.Message) {
 }
 
 func (b *Bot) handleViewOptions(cq *tbot.CallbackQuery) {
+	// Ensure the user is an admin
 	if !b.ensureAdmin(cq.Message) {
 		return
 	}
 
+	// Fetch all car options from storage
 	options, err := b.storage.CarOption().GetAll()
 	if err != nil {
 		b.logger.Error("Failed to get car options: ", err.Error())
@@ -159,37 +161,32 @@ func (b *Bot) handleViewOptions(cq *tbot.CallbackQuery) {
 		return
 	}
 
+	// Check if there are any car options to display
 	if len(options) == 0 {
 		b.sendMessage(cq.Message, "Немає доступних варіантів авто.", nil)
 		return
 	}
 
-	errChan := make(chan error, len(options))
-
+	// Loop through car options sequentially to ensure correct order
 	for _, option := range options {
-		go func(option *models.CarOption) {
-			message := fmt.Sprintf(
-				"%d. %s\n\n📝Опис:\n%s\n\n💵Ціна: %d$\n📅Рік: %s",
-				option.ID, option.Title, option.Description, option.Price, option.Year,
-			)
+		message := fmt.Sprintf(
+			"%d. %s\n\n📝Опис:\n%s\n\n💵Ціна: %d$\n📅Рік: %s",
+			option.ID, option.Title, option.Description, option.Price, option.Year,
+		)
 
-			_, err := b.client.SendPhoto(
-				cq.Message.Chat.ID,
-				option.PhotoID,
-				tbot.OptCaption(message),
-				tbot.OptInlineKeyboardMarkup(utils.GetDeleteOptionKeyboard(option.ID)),
-			)
-			errChan <- err
-		}(option)
-	}
+		// Send each car option with its corresponding photo and delete option keyboard
+		_, err := b.client.SendPhoto(
+			cq.Message.Chat.ID,
+			option.PhotoID,
+			tbot.OptCaption(message),
+			tbot.OptInlineKeyboardMarkup(utils.GetDeleteOptionKeyboard(option.ID)),
+		)
 
-	for i := 0; i < len(options); i++ {
-		if err := <-errChan; err != nil {
+		// Log any errors encountered during sending
+		if err != nil {
 			b.logger.Error("Failed to send car option: ", err.Error())
 		}
 	}
-
-	close(errChan)
 }
 
 func (b *Bot) handleDeleteOption(cq *tbot.CallbackQuery) {

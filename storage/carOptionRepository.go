@@ -38,7 +38,7 @@ func (cr *CarOptionRepository) Create(co *models.CarOption) error {
 
 func (cr *CarOptionRepository) GetAll() ([]*models.CarOption, error) {
 	// Створюємо SELECT запит для отримання всіх варіантів автомобілів
-	query := fmt.Sprintf("SELECT * FROM %s", tableCarOptions)
+	query := fmt.Sprintf("SELECT * FROM %s ORDER BY created_at DESC", tableCarOptions)
 	rows, err := cr.storage.db.Query(query)
 	if err != nil {
 		return nil, err
