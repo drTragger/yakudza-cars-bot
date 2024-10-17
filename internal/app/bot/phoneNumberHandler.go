@@ -25,6 +25,12 @@ func (b *Bot) handlePhoneNumber(m *tbot.Message) {
 
 	carData := b.getCarData(m.Chat.ID)
 
+	if carData == nil {
+		b.sendMessage(m, "Будь ласка, спершу пройдіть опитування:", utils.GetPriceKeyboard())
+		b.setUserState(m.Chat.ID, app.AwaitingCarPrice)
+		return
+	}
+
 	// Get the phone number from the message
 	phoneNumber := strings.TrimLeft(m.Contact.PhoneNumber, "+")
 
