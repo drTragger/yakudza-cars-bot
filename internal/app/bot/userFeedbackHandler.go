@@ -3,6 +3,7 @@ package bot
 import (
 	"database/sql"
 	"errors"
+	"github.com/drTragger/yakudza-cars-bot/internal/app/utils"
 	"github.com/yanzay/tbot/v2"
 	"strconv"
 )
@@ -34,11 +35,9 @@ func (b *Bot) handleFeedback(m *tbot.Message) {
 func (b *Bot) showFeedback(m *tbot.Message) {
 	shownFeedbacks := b.getShownFeedbackIDs(m.Chat.ID)
 
-	// Get the next feedback from the database
 	feedback, err := b.storage.Feedback().GetNext(shownFeedbacks)
 	if errors.Is(err, sql.ErrNoRows) {
-		// No more feedback to show
-		b.sendMessage(m, "Більше немає відгуків.", nil)
+		b.sendInstagramMessage(m)
 		return
 	} else if err != nil {
 		// Handle any other errors
@@ -57,15 +56,15 @@ func (b *Bot) showFeedback(m *tbot.Message) {
 	}
 
 	// Check if there is more feedback
-	_, err = b.storage.Feedback().GetNext(shownFeedbacks)
-	if err == nil {
+	_, nextFeedbackErr := b.storage.Feedback().GetNext(shownFeedbacks)
+	if nextFeedbackErr == nil {
 		// If there is more feedback, add the "Хочу ще" button
 		inlineKeyboard.InlineKeyboard = append(inlineKeyboard.InlineKeyboard, []tbot.InlineKeyboardButton{
 			{Text: "Хочу ще", CallbackData: "more_feedback"},
 		})
-	} else if !errors.Is(err, sql.ErrNoRows) {
+	} else if !errors.Is(nextFeedbackErr, sql.ErrNoRows) {
 		// If an unexpected error occurs, log it
-		b.logger.Error("Failed to check for more feedback: ", err.Error())
+		b.logger.Error("Failed to check for more feedback: ", nextFeedbackErr.Error())
 	}
 
 	// Send the feedback video with the inline keyboard
@@ -81,6 +80,21 @@ func (b *Bot) showFeedback(m *tbot.Message) {
 		return
 	}
 
+	if errors.Is(nextFeedbackErr, sql.ErrNoRows) {
+		b.sendInstagramMessage(m)
+		return
+	}
+
 	// Remove any previous user state
 	b.deleteUserState(m.Chat.ID)
+}
+
+func (b *Bot) sendInstagramMessage(m *tbot.Message) {
+	b.sendMessage(
+		m,
+		"Якщо хочеш детальніше познйомитися з нами та побачити більше авто, як ми привезли — переходь в наш Instagram.",
+		utils.GetInstagramKeyboard(),
+	)
+
+	b.sendMessage(m, "Оберіть наступну дію ⚙️", utils.GetMenuKeyboard())
 }

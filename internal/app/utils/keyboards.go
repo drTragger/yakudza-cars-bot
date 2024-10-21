@@ -40,7 +40,7 @@ func GetMenuKeyboard() *tbot.ReplyKeyboardMarkup {
 				{Text: "Відгуки"},        // Button to allow feedback
 			},
 			{
-				{Text: "Бай Нау"}, // Third button at the bottom
+				{Text: "Купити Зараз"}, // Third button at the bottom
 			},
 		},
 	}
@@ -100,6 +100,19 @@ func GetDeleteFeedbackKeyboard(feedbackID int) *tbot.InlineKeyboardMarkup {
 		InlineKeyboard: [][]tbot.InlineKeyboardButton{
 			{
 				{Text: "Видалити ❌", CallbackData: fmt.Sprintf("delete_feedback_%d", feedbackID)},
+			},
+		},
+	}
+}
+
+func GetInstagramKeyboard() *tbot.InlineKeyboardMarkup {
+	return &tbot.InlineKeyboardMarkup{
+		InlineKeyboard: [][]tbot.InlineKeyboardButton{
+			{
+				tbot.InlineKeyboardButton{
+					Text: "Перейти в Instagram",
+					URL:  "https://www.instagram.com/yakudza_cars_ua/profilecard/?igsh=MWJ1dmo5cjExbzU4OQ==",
+				},
 			},
 		},
 	}

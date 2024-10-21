@@ -103,7 +103,7 @@ func (b *Bot) showCarOption(m *tbot.Message) {
 	carOption, err := b.storage.CarOption().GetByDetails(selectedCar, shownOptions)
 	if errors.Is(err, sql.ErrNoRows) {
 		b.logger.Info("Немає варіантів авто.")
-		b.sendMessage(m, "Наразі під ці параметри немає варіантів для вас. Будь ласка, оберіть альтернативу.", nil)
+		b.sendMessage(m, "Ще більше варіантів Вам запропонує наш менеджер, він скоро з Вами звʼяжеться 🔜", nil)
 		b.deleteCarData(m.Chat.ID)
 		return
 	} else if err != nil {

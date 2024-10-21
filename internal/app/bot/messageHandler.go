@@ -9,7 +9,7 @@ import (
 var menuHandlers = map[string]func(*Bot, *tbot.Message){
 	"Підібрати Авто": (*Bot).handleCarSelection,
 	"Відгуки":        (*Bot).handleFeedback,
-	"Бай Нау": func(b *Bot, m *tbot.Message) {
+	"Купити Зараз": func(b *Bot, m *tbot.Message) {
 		b.sendMessage(m, "Перейдіть за посиланням:\nhttps://t.me/yakudzaoffer", nil)
 	},
 }
