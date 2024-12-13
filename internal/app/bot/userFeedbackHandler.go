@@ -5,30 +5,9 @@ import (
 	"errors"
 	"github.com/drTragger/yakudza-cars-bot/internal/app/utils"
 	"github.com/yanzay/tbot/v2"
-	"strconv"
 )
 
 func (b *Bot) handleFeedback(m *tbot.Message) {
-	b.setUserState(m.Chat.ID, "show_feedback")
-
-	chatId, err := strconv.Atoi(m.Chat.ID)
-	if err != nil {
-		b.logger.Error("Failed to convert chatId to int: ", err.Error())
-		b.sendMessage(m, "Щось пішло не так. Спробуйте ще раз.", nil)
-		return
-	}
-
-	_, err = b.storage.User().FindByChatId(chatId)
-	if errors.Is(err, sql.ErrNoRows) {
-		// Запит номера телефону
-		b.requestPhoneNumber(m)
-		return
-	} else if err != nil {
-		b.logger.Error("Failed to find user by chat id: ", err.Error())
-		b.sendMessage(m, "Щось пішло не так. Спробуйте ще раз.", nil)
-		return
-	}
-
 	b.showFeedback(m)
 }
 

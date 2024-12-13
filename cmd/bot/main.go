@@ -38,7 +38,7 @@ func main() {
 
 	logger.SetOutput(file)
 
-	server := bot.New(config, logger, tgBot.Client(), tgBot, cache.New(40*time.Minute, 60*time.Minute))
+	server := bot.New(config, logger, tgBot.Client(), tgBot, cache.New(24*time.Hour, 48*time.Hour))
 
 	log.Fatal(server.Start())
 }
