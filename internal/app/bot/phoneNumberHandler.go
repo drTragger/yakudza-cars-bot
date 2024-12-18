@@ -10,7 +10,16 @@ import (
 )
 
 func (b *Bot) requestPhoneNumber(m *tbot.Message) {
-	b.sendMessage(m, "Будь ласка, поділіться вашим номером телефону, щоб продовжити:", utils.GetContactKeyboard())
+	carOption := b.getSelectedCar(m.Chat.ID)
+	var message string
+
+	if carOption == nil {
+		message = "Ми знаємо, що ви хочете знайти ще більше крутих варіантів авто! 🚗\nЗалиште свій номер, щоб наш менеджер допоміг вам із підбором та консультацією, і ви продовжили переглядати авто в нашому боті. 😊"
+	} else {
+		message = "Схоже, ви знайшли своє ідеальне авто! 🙌\nЗалиште ваш контактний номер, і наш менеджер незабаром зв’яжеться з вами для консультації та детальної інформації 🚘"
+	}
+
+	b.sendMessage(m, message, utils.GetContactKeyboard())
 
 	b.setUserState(m.Chat.ID, app.AwaitingPhone)
 }
@@ -74,7 +83,11 @@ func (b *Bot) handlePhoneNumber(m *tbot.Message) {
 	}()
 
 	// Send details to the group asynchronously
-	go b.sendCarDetailsToGroup(phoneNumber, carData.Price.Title, carData.Year)
+	if carData.Price.Title != "" && carData.Year != "" {
+		go b.sendCarDetailsToGroup(phoneNumber, carData.Price.Title, carData.Year)
+	} else {
+		go b.sendCarDetailsToGroup(phoneNumber, "Невідомо", "Невідомо")
+	}
 
 	// Process potential errors from goroutines
 	for i := 0; i < 2; i++ {
@@ -86,8 +99,14 @@ func (b *Bot) handlePhoneNumber(m *tbot.Message) {
 	// Close the error channel after all operations
 	close(errChan)
 
-	// Display car options after operations complete
-	b.showCarOption(m)
+	carOption := b.getSelectedCar(m.Chat.ID)
+	if carOption == nil {
+		// Display car options after operations complete
+		b.showCarOption(m)
+	} else {
+		b.handleSelectCar(carOption)
+		b.deleteSelectedCar(m.Chat.ID)
+	}
 
 	b.deleteUserState(m.Chat.ID)
 }

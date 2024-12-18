@@ -42,7 +42,7 @@ func (b *Bot) askForCarYear(m *tbot.Message) {
 		yearKeyboard.Keyboard = append(yearKeyboard.Keyboard, row)
 	}
 
-	b.sendMessage(m, "Дякую! Тепер оберіть рік авто:", yearKeyboard)
+	b.sendMessage(m, "Дякую! Тепер оберіть, від якого року має бути авто:", yearKeyboard)
 }
 
 func (b *Bot) handleYearSelection(m *tbot.Message, selectedYear string) {
@@ -56,25 +56,6 @@ func (b *Bot) handleYearSelection(m *tbot.Message, selectedYear string) {
 		utils.GetMenuKeyboard(),
 	)
 
-	chatId, err := strconv.Atoi(m.Chat.ID)
-	if err != nil {
-		b.logger.Error("Failed to convert chatId to int: ", err.Error())
-		b.sendMessage(m, "Щось пішло не так. Спробуйте ще раз.", nil)
-		return
-	}
-
-	user, err := b.storage.User().FindByChatId(chatId)
-	if errors.Is(err, sql.ErrNoRows) {
-		// Запит номера телефону
-		b.requestPhoneNumber(m)
-		return
-	} else if err != nil {
-		b.logger.Error("Failed to find user by chat id: ", err.Error())
-		b.sendMessage(m, "Щось пішло не так. Спробуйте ще раз.", nil)
-		return
-	}
-
-	b.sendCarDetailsToGroup(user.Phone, carData.Price.Title, carData.Year)
 	b.showCarOption(m)
 }
 
@@ -92,6 +73,7 @@ func (b *Bot) sendCarDetailsToGroup(phoneNumber string, price string, year strin
 }
 
 func (b *Bot) showCarOption(m *tbot.Message) {
+	b.deleteSelectedCar(m.Chat.ID)
 	selectedCar := b.getCarData(m.Chat.ID)
 	if selectedCar == nil || *selectedCar == (models.CarDetails{}) {
 		b.sendMessage(m, "Ви не обрали жодного параметру. Будь ласка, пройдіть опитування:", utils.GetPriceKeyboard())
@@ -99,6 +81,26 @@ func (b *Bot) showCarOption(m *tbot.Message) {
 	}
 
 	shownOptions := b.getShownOptionIDs(m.Chat.ID)
+
+	if len(shownOptions) >= 3 {
+		chatId, err := strconv.Atoi(m.Chat.ID)
+		if err != nil {
+			b.logger.Error("Failed to convert chatId to int: ", err.Error())
+			b.sendMessage(m, "Щось пішло не так. Спробуйте ще раз.", nil)
+			return
+		}
+
+		_, err = b.storage.User().FindByChatId(chatId)
+		if errors.Is(err, sql.ErrNoRows) {
+			// Запит номера телефону
+			b.requestPhoneNumber(m)
+			return
+		} else if err != nil {
+			b.logger.Error("Failed to find user by chat id: ", err.Error())
+			b.sendMessage(m, "Щось пішло не так. Спробуйте ще раз.", nil)
+			return
+		}
+	}
 
 	carOption, err := b.storage.CarOption().GetByDetails(selectedCar, shownOptions)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -209,7 +211,11 @@ func (b *Bot) handleSelectCar(cq *tbot.CallbackQuery) {
 		}
 
 		user, err := b.storage.User().FindByChatId(chatId)
-		if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			b.setSelectedCar(cq.Message.Chat.ID, cq)
+			b.requestPhoneNumber(cq.Message)
+			return
+		} else if err != nil {
 			errChan <- err
 			return
 		}

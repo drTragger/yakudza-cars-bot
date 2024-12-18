@@ -6,6 +6,8 @@ const (
 
 	AwaitingPhone = "awaiting_phone_number"
 
+	AwaitingSelectCar = "awaiting_select_car"
+
 	AwaitingCarTitle       = "awaiting_admin_car_title"
 	AwaitingCarDescription = "awaiting_admin_car_description"
 	AwaitingCarPrice       = "awaiting_admin_price_selection"

@@ -1,6 +1,8 @@
 package bot
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/yanzay/tbot/v2"
 	"strconv"
@@ -20,7 +22,10 @@ func (b *Bot) handleContactUs(cq *tbot.CallbackQuery) {
 	}
 
 	user, err := b.storage.User().FindByChatId(chatId)
-	if err != nil {
+	if errors.Is(err, sql.ErrNoRows) {
+		b.requestPhoneNumber(cq.Message)
+		return
+	} else if err != nil {
 		b.logger.Error("Failed to find user: ", err.Error())
 		b.sendMessage(cq.Message, "Щось пішло не так. Спробуйте ще раз.", nil)
 		return

@@ -3,6 +3,7 @@ package bot
 import (
 	"github.com/drTragger/yakudza-cars-bot/internal/app/models"
 	"github.com/patrickmn/go-cache"
+	"github.com/yanzay/tbot/v2"
 )
 
 // Car data
@@ -31,6 +32,21 @@ func (b *Bot) getShownOptionIDs(chatID string) []int {
 		return ids.([]int)
 	}
 	return []int{}
+}
+
+func (b *Bot) setSelectedCar(chatID string, cq *tbot.CallbackQuery) {
+	b.cache.Set(chatID+"_selectedCar", cq, cache.DefaultExpiration)
+}
+
+func (b *Bot) getSelectedCar(chatID string) *tbot.CallbackQuery {
+	if cq, found := b.cache.Get(chatID + "_selectedCar"); found {
+		return cq.(*tbot.CallbackQuery)
+	}
+	return nil
+}
+
+func (b *Bot) deleteSelectedCar(chatID string) {
+	b.cache.Delete(chatID + "_selectedCar")
 }
 
 // User states
